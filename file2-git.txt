@@ -1,0 +1,115 @@
+sudo nano /etc/netplan/00-installer-config.yaml
+sudo netplan apply
+ip a
+sudo apt update && sudo apt upgrade -y
+sudo apt autoremove -y
+sudo apt clean && sudo apt autoclean
+
+--- 2.2 Hapus Docker Lama (Jika Ada) ---
+sudo docker stop $(sudo docker ps -aq)
+sudo docker rm $(sudo docker ps -aq)
+sudo docker rmi $(sudo docker images -q)
+sudo docker volume rm $(sudo docker volume ls -q)
+sudo apt remove --purge docker docker-engine docker.io containerd runc docker-compose docker-compose-plugin -y
+sudo apt autoremove -y
+sudo rm -rf /var/lib/docker /var/lib/containerd /etc/docker
+
+--- 2.3 Install Git - Docker ---
+sudo apt install git -y
+git --version
+sudo apt install ca-certificates curl gnupg lsb-release -y
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+docker --version && docker compose version
+
+--- 3.1 Clone dari GitHub --
+git clone https://github.com/ershnir/repo-ujikombengkel.git
+cd repo-ujikombengkel
+cp .env.example .env
+nano .env
+
+--- 3.3 Buat Dockerfile , dll---
+nano Dockerfile
+nano docker-compose.yml
+mkdir -p docker/nginx
+nano docker/nginx/default.conf
+cd /repo-ujikombengkel
+docker compose build
+docker compose up -d
+
+Verifikasi (harus ada 3 replica app):
+docker compose ps
+docker compose exec app composer install
+
+--- 4.3 Setup Database ---
+docker compose exec app php artisan migrate --force
+docker compose exec app php artisan storage:link
+docker compose exec app chmod -R 775 storage bootstrap/cache
+docker compose exec app chown -R www-data:www-data storage bootstrap/cache
+docker compose exec app php artisan tinker
+
+# Setelah masuk prompt (>>>), ketik:
+$user = App\Models\User::create(['name' => 'Admin', 'email' => 'admin@gmail.com', 'password' => bcrypt('12345'), 'role' => 'admin']);
+exit
+
+--- 4.6 Optimasi Laravel ---
+docker compose exec app php artisan config:cache
+docker compose exec app php artisan route:cache
+docker compose exec app php artisan view:cache
+
+--- 5.1 Install Ansible di VM 1 ---
+sudo apt install ansible -y
+ansible --version
+ssh-keygen -t rsa -b 4096
+
+# Aktifkan root login di VM 2 (buka terminal VM 2):
+nano /etc/ssh/sshd_config
+# Cari dan ubah: PermitRootLogin yes
+systemctl restart sshd
+
+# Kembali ke VM 1, copy SSH key:
+ssh-copy-id root@192.168.1.11
+ssh root@192.168.1.11
+exit
+
+--- 5.3 Buat Inventory Ansible ---
+mkdir -p /etc/ansible
+nano /etc/ansible/hosts
+ansible vm2 -m ping
+mkdir -p /etc/ansible/playbooks
+nano /etc/ansible/playbooks/docker.yml
+nano /etc/ansible/playbooks/dns.yml
+nano /etc/ansible/playbooks/dhcp.yml
+ansible-playbook /etc/ansible/playbooks/docker.yml /etc/ansible/playbooks/dns.yml /etc/ansible/playbooks/dhcp.yml
+nslookup ujikom-putri.net 192.168.1.11
+
+--- 9.2 Setting DNS di Client Windows ---
+1. Buka Control Panel > Network and Sharing Center
+2. Klik adapter yang dipakai (Ethernet/WiFi)
+3. Klik Properties
+4. Pilih Internet Protocol Version 4 (TCP/IPv4) > Properties
+5. Pilih "Use the following DNS server addresses" dan juga gateway
+6. Preferred DNS server: 192.168.1.11
+7. Klik OK
+
+--- 10.1 Konfigurasi Awal Git ---
+git config --global user.name 'Nama Kamu'
+git config --global user.email 'email@gmail.com'
+
+--- 10.2 Push Pertama Kali ---
+
+cd repo-ujikombengkel
+git init
+git add .
+git commit -m 'Initial commit: OtoKlik Laravel App'
+git remote add origin https://github.com/username/repo-ujikombengkel.git
+git branch -M main
+git push -u origin main
+
+git add .
+git commit -m 'Update: deskripsi perubahan'
+git push origin main

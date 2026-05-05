@@ -1,0 +1,55 @@
+- name: Setup DNS Server (BIND9)
+  hosts: vm2
+  become: yes
+  tasks:
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install BIND9
+      apt:
+        name:
+          - bind9
+          - bind9utils
+          - bind9-doc
+        state: present
+
+    - name: Configure named.conf.options
+      copy:
+        dest: /etc/bind/named.conf.options
+        content: |
+          options {
+              directory "/var/cache/bind";
+              recursion yes;
+              allow-query { any; };
+              forwarders { 8.8.8.8; 8.8.4.4; };
+              dnssec-validation no;
+              listen-on { any; };
+          };
+
+    - name: Configure named.conf.local
+      copy:
+        dest: /etc/bind/named.conf.local
+        content: |
+          zone "ujikom-putri.net" {
+              type master;
+              file "/etc/bind/db.ujikom-putri.net";
+          };
+
+    - name: Create DNS zone file
+      copy:
+        dest: /etc/bind/db.ujikom-putri.net
+        content: |
+          $TTL 604800
+          @  IN  SOA ujikom-putri.net. admin.ujikom-putri.net. (
+                   2 604800 86400 2419200 604800 )
+          @      IN  NS   ujikom-putri.net.
+          @      IN  A    192.168.1.10
+          www    IN  A    192.168.1.10
+
+    - name: Restart dan enable BIND9
+      service:
+        name: bind9
+        state: restarted
+        enabled: yes

@@ -1,0 +1,5 @@
+[vm2]
+192.168.1.11 ansible_user=root
+
+[vm2:vars]
+ansible_ssh_private_key_file=/root/.ssh/id_rsa

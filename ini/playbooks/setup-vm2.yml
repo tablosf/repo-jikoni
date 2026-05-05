@@ -1,0 +1,82 @@
+- name: Setup VM2 - DNS dan DHCP Server
+  hosts: vm2
+  become: yes
+  tasks:
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install BIND9 dan DHCP
+      apt:
+        name:
+          - bind9
+          - bind9utils
+          - bind9-doc
+          - isc-dhcp-server
+        state: present
+
+    - name: Configure named.conf.options
+      copy:
+        dest: /etc/bind/named.conf.options
+        content: |
+          options {
+              directory "/var/cache/bind";
+              recursion yes;
+              allow-query { any; };
+              forwarders { 8.8.8.8; 8.8.4.4; };
+              dnssec-validation no;
+              listen-on { any; };
+          };
+
+    - name: Configure named.conf.local
+      copy:
+        dest: /etc/bind/named.conf.local
+        content: |
+          zone "ujikom-putri.net" {
+              type master;
+              file "/etc/bind/db.ujikom-putri.net";
+          };
+
+    - name: Create DNS zone file
+      copy:
+        dest: /etc/bind/db.ujikom-putri.net
+        content: |
+          $TTL 604800
+          @  IN  SOA ujikom-putri.net. admin.ujikom-putri.net. (
+                   2 604800 86400 2419200 604800 )
+          @      IN  NS   ujikom-putri.net.
+          @      IN  A    192.168.1.10
+          www    IN  A    192.168.1.10
+
+    - name: Restart BIND9
+      service:
+        name: bind9
+        state: restarted
+        enabled: yes
+
+    - name: Configure DHCP Server
+      copy:
+        dest: /etc/dhcp/dhcpd.conf
+        content: |
+          default-lease-time 600;
+          max-lease-time 7200;
+          authoritative;
+          subnet 192.168.1.0 netmask 255.255.255.0 {
+              range 192.168.1.100 192.168.1.200;
+              option routers 192.168.1.1;
+              option domain-name-servers 192.168.1.11;
+              option domain-name "ujikom-putri.net";
+          }
+
+    - name: Set DHCP interface
+      lineinfile:
+        path: /etc/default/isc-dhcp-server
+        regexp: '^INTERFACESv4='
+        line: 'INTERFACESv4="enp0s8"'
+
+    - name: Restart DHCP Server
+      service:
+        name: isc-dhcp-server
+        state: restarted
+        enabled: yes

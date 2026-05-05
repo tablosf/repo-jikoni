@@ -1,0 +1,76 @@
+Perintah	Fungsi
+php artisan migrate --force	Jalankan migrasi database
+php artisan migrate:rollback	Batalkan migrasi terakhir
+php artisan migrate:fresh --seed	Reset & migrasi ulang + seeder
+php artisan db:seed --force	Jalankan seeder database
+php artisan storage:link	Buat symlink public/storage
+php artisan config:cache	Cache konfigurasi
+php artisan config:clear	Hapus cache konfigurasi
+php artisan cache:clear	Hapus semua cache
+php artisan key:generate	Generate APP_KEY baru
+php artisan tinker	Buka REPL interaktif Laravel
+php artisan route:list	Lihat semua route yang terdaftar
+php artisan make:model NamaModel	Buat model baru
+php artisan make:migration nama	Buat file migrasi baru
+
+3.8 Tabel Perintah Docker Berguna
+
+Perintah	Fungsi
+docker compose up -d	Jalankan semua container (background)
+docker compose down	Stop & hapus container
+docker compose ps	Lihat status container
+docker compose logs -f	Lihat log real-time
+docker compose build	Build ulang image
+docker compose restart nginx	Restart service nginx saja
+docker compose exec app bash	Masuk ke dalam container app
+docker compose exec app php artisan ...	Jalankan artisan dari luar container
+docker volume ls	Lihat semua volume
+docker network ls	Lihat semua network
+
+BAB 7 — Version Control dengan Git
+7.1 Konfigurasi Awal Git
+git config --global user.name 'Nama Kamu'
+git config --global user.email 'email@gmail.com'
+git config --list
+7.2 Inisialisasi & Push ke GitHub
+cd /repo-ujikombengkel
+git init
+git add .
+git commit -m 'Initial commit: OtoKlik Laravel App'
+git remote add origin https://github.com/username/nama-repo.git
+git branch -M main
+git push -u origin main
+7.3 Clone Repository
+git clone https://github.com/ershnir/repo-ujikombengkel.git
+cd repo-ujikombengkel
+7.4 Workflow Git Sehari-hari
+•	git status — cek perubahan
+•	git add . — stage semua perubahan
+•	git commit -m 'pesan' — commit perubahan
+•	git push origin main — upload ke GitHub
+•	git pull origin main — update dari GitHub
+7.5 Tabel Perintah Git Penting
+
+Perintah	Fungsi
+git init	Inisialisasi repository baru
+git clone URL	Download repository dari GitHub
+git status	Lihat file yang berubah
+git add .	Stage semua perubahan
+git commit -m 'pesan'	Simpan perubahan
+git push origin main	Upload ke GitHub
+git pull origin main	Download update dari GitHub
+git log --oneline	Lihat riwayat commit ringkas
+git branch	Lihat semua branch
+git checkout -b nama	Buat & pindah ke branch baru
+git merge nama-branch	Gabungkan branch ke branch aktif
+git stash	Simpan perubahan sementara
+git stash pop	Kembalikan perubahan dari stash
+git remote -v	Lihat remote repository
+
+
+
+
+
+
+
+
